@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<render_tiles>
+<hm_render_landez>
     <tilesmanager>
-        <mbtiles_file>dilijan.mbtiles</mbtiles_file>
-        <mapnik_stylefile>mapnik_style.xml</mapnik_stylefile>
+        <mbtiles_file>source.mbtiles</mbtiles_file>
+        <!--mapnik_stylefile>mapnik_style.xml</mapnik_stylefile-->
         <!--wmts_url>https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</wmts_url>
         <wmts_subdomains>abc</wmts_subdomains-->
-        <!--wmts_url>http://www.ngi.be/cartoweb/1.0.0/topo/default/3857/{z}/{y}/{x}.png</wmts_url-->
         <cache_dir>tilecache</cache_dir>
         <tile_size>256</tile_size>
         <tile_format>image/png</tile_format>
@@ -20,5 +19,5 @@
         <fontdir>/usr/share/fonts/noto-cjk</fontdir>
         <fontdir>/usr/share/fonts/TTF</fontdir>
     </fontdirs>
-</render_tiles>
+</hm_render_landez>
 
