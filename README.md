@@ -1,4 +1,4 @@
-# Mapnik rendering
+# Rendering paper maps from tiles using Landez and Mapnik
 
 This program renders an area with given boundaries using tiles from either a [mapbox MBTiles file](https://wiki.openstreetmap.org/wiki/MBTiles), a [tile server](https://wiki.openstreetmap.org/wiki/Tile_servers) or locally rendered using [mapnik](http://mapnik.org/). It is designed to work with hikingmap but it can be used standalone as well if desired.
 
