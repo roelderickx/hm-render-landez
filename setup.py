@@ -18,7 +18,7 @@ setuptools.setup(
     url="https://github.com/roelderickx/hm-render-landez",
     packages=setuptools.find_packages(),
     install_requires=requirements,
-    python_requires='>=3.5',
+    python_requires='>=3.7',
     entry_points={
         'console_scripts': ['hm-render-landez = hm_render_landez.hm_render_landez:main']
     },

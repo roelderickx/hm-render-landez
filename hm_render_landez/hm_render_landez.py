@@ -68,7 +68,8 @@ def parse_commandline():
     # --
     parser.add_argument('gpxfiles', nargs = '*')
     
-    subparsers = parser.add_subparsers(dest='mode', help='bounding box or center mode')
+    subparsers = parser.add_subparsers(dest='mode', required=True, \
+                                       help='bounding box or center mode')
     
     # create the parser for the bbox command
     parser_bbox = subparsers.add_parser('bbox', help='define bounding box')
