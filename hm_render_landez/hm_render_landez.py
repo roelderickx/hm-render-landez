@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import argparse, math, mapnik
+import os, argparse, math, mapnik
 from xml.dom import minidom
 from landez import TilesManager, GoogleProjection, ExtractionError
 
@@ -25,7 +25,113 @@ earthCircumference = 40041.44 # km (average, equatorial 40075.017 km / meridiona
 cmToKmFactor = 100000.0
 inch = 2.54 # cm
 
+def search_configfile():
+    filename = 'hm-render-landez.config.xml'
+    if os.path.exists(filename):
+        return os.path.abspath(filename)
+    elif os.path.exists(os.path.join(os.path.expanduser('~'), '.' + filename)):
+        return os.path.join(os.path.expanduser('~'), '.' + filename)
+    else:
+        return None
+
+
+def get_xml_subtag_value(xmlnode, sublabelname):
+    elements = xmlnode.getElementsByTagName(sublabelname)
+    return str(elements[0].firstChild.nodeValue) if elements and elements[0].childNodes else None
+
+
+def parse_configfile():
+    config = {}
+    config['hikingmapstyle'] = 'hikingmap_style.xml'
+    config['output_format'] = 'png'
+    config['dpi'] = 300
+    config['scale_factor'] = 1.0
+    config['tilesize'] = 256
+    config['tileformat'] = 'image/png'
+    config['tilescheme'] = 'wmts'
+
+    configfile = search_configfile()
+    
+    if configfile:
+        xmldoc = None
+        xmlmapnik = None
+        
+        try:
+            xmldoc = minidom.parse(configfile)
+        except:
+            pass
+        
+        if xmldoc:
+            xmllandez_element = xmldoc.getElementsByTagName('hm-render-landez')
+            if xmllandez_element:
+                xmllandez = xmllandez_element[0]
+        
+        if xmllandez:
+            xmltilesmanagerlist = xmllandez.getElementsByTagName('tilesmanager')
+            if xmltilesmanagerlist:
+                xmltilesmanager = xmltilesmanagerlist[0]
+                
+                mbtilesfile = get_xml_subtag_value(xmltilesmanager, 'mbtiles_file')
+                if mbtilesfile:
+                    config['mbtilesfile'] = mbtilesfile
+                
+                mapnikstyle = get_xml_subtag_value(xmltilesmanager, 'mapnik_stylefile')
+                if mapnikstyle:
+                    config['mapnikstyle'] = mapnikstyle
+                
+                wmtsurl = get_xml_subtag_value(xmltilesmanager, 'wmts_url')
+                if wmtsurl:
+                    config['wmtsurl'] = wmtsurl
+                
+                wmtssubdomains = get_xml_subtag_value(xmltilesmanager, 'wmts_subdomains')
+                if wmtssubdomains:
+                    config['wmtssubdomains'] = wmtssubdomains
+                
+                cachedir = get_xml_subtag_value(xmltilesmanager, 'cache_dir')
+                if cachedir:
+                    config['cachedir'] = cachedir
+                
+                tilesize = get_xml_subtag_value(xmltilesmanager, 'tile_size')
+                if tilesize:
+                    config['tilesize'] = int(tilesize)
+                
+                tileformat = get_xml_subtag_value(xmltilesmanager, 'tile_format')
+                if tileformat:
+                    config['tileformat'] = tileformat
+                
+                tilescheme = get_xml_subtag_value(xmltilesmanager, 'tile_scheme')
+                if tilescheme:
+                    config['tilescheme'] = tilescheme
+            
+            hikingmapstyle = get_xml_subtag_value(xmllandez, 'hikingmapstyle')
+            if hikingmapstyle:
+                config['hikingmapstyle'] = hikingmapstyle
+            
+            output_format = get_xml_subtag_value(xmllandez, 'outputformat')
+            if output_format:
+                config['output_format'] = output_format
+            
+            dpi = get_xml_subtag_value(xmllandez, 'dpi')
+            if dpi:
+                config['dpi'] = int(dpi)
+            
+            scale_factor = get_xml_subtag_value(xmllandez, 'scalefactor')
+            if scale_factor:
+                config['scale_factor'] = float(scale_factor)
+            
+            xmlfontdirlist = xmllandez.getElementsByTagName('fontdirs')
+            
+            for xmlfontdir in xmlfontdirlist:
+                fontdir = get_xml_subtag_value(xmlfontdir, 'fontdir')
+                if fontdir:
+                    mapnik.FontEngine.register_fonts(fontdir, True)
+    
+    return config
+
+
 def parse_commandline():
+    config = parse_configfile()
+
     parser = argparse.ArgumentParser(description = "Render a map on paper using mapnik")
     parser.add_argument('--pagewidth', dest = 'pagewidth', type = float, default = 20.0, \
                         help = "page width in cm")
@@ -39,31 +145,36 @@ def parse_commandline():
                         help = "temp waypoints file to render")
     parser.add_argument('-v', dest = 'verbose', action = 'store_true')
     # hm-render-landez specific parameters
-    parser.add_argument('-d', '--dpi', type=int, default=300, \
+    parser.add_argument('-d', '--dpi', type=int, default=config['dpi'], \
                         help = "amount of detail to render in dots per inch (default: %(default)s)")
-    parser.add_argument('-S', '--scale-factor', type=float, default=1.0, \
+    parser.add_argument('-S', '--scale-factor', type=float, default=config['scale_factor'], \
                         help = "scale factor (default: %(default)s)")
-    parser.add_argument('--hikingmapstyle', default='hikingmap_style.xml', \
+    parser.add_argument('--hikingmapstyle', default=config['hikingmapstyle'], \
                         help = "hikingmap stylesheet file, contains the CartoCSS for " + \
                                "the tracks and the waypoints (default: %(default)s)")
-    parser.add_argument('-f', '--format', dest='output_format', default='png', \
+    parser.add_argument('-f', '--format', dest='output_format', default=config['output_format'], \
                         help = "output format, consult the mapnik documentation for " + \
                                "possible values (default: %(default)s)")
     parser.add_argument('--mbtiles', dest='mbtiles_file', \
+                        default=config['mbtilesfile'] if 'mbtilesfile' in config else None, \
                         help = "input raster mbtiles file")
     parser.add_argument('--mapnik-style', dest='mapnik_stylefile', \
+                        default=config['mapnikstyle'] if 'mapnikstyle' in config else None, \
                         help = "mapnik stylesheet file")
     parser.add_argument('--wmts-url', dest='wmts_url', \
+                        default=config['wmtsurl'] if 'wmtsurl' in config else None, \
                         help = "remote URL to download tiles")
     parser.add_argument('--wmts-subdomains', dest='wmts_subdomains', \
+                        default=config['wmtssubdomains'] if 'wmtssubdomains' in config else None, \
                         help = "URL subdomains")
     parser.add_argument('--cachedir', dest='cache_dir', \
+                        default=config['cachedir'] if 'cachedir' in config else None, \
                         help = "local folder containing cached tiles")
-    parser.add_argument('--tilesize', type=int, default=256, dest='tile_size', \
+    parser.add_argument('--tilesize', type=int, default=config['tilesize'], dest='tile_size', \
                         help = "tile size")
-    parser.add_argument('--tileformat', default='image/png', dest='tile_format', \
+    parser.add_argument('--tileformat', default=config['tileformat'], dest='tile_format', \
                         help = "tile image format")
-    parser.add_argument('--tilescheme', choices=[ 'tms', 'wmts' ], default='wmts', \
+    parser.add_argument('--tilescheme', choices=[ 'tms', 'wmts' ], default=config['tilescheme'], \
                         dest='tile_scheme', help = "tile scheme")
     # --
     parser.add_argument('gpxfiles', nargs = '*')
@@ -115,43 +226,6 @@ def assure_bbox_mode(parameters):
         parameters.maxlon = parameters.lon + pagesize_lon / 2
         parameters.maxlat = parameters.lat + pagesize_lat / 2
 
-'''
-def __get_xml_subtag_value(self, xmlnode, sublabelname, defaultvalue):
-    elements = xmlnode.getElementsByTagName(sublabelname)
-    return str(elements[0].firstChild.nodeValue) \
-                  if elements and elements[0].childNodes \
-                  else defaultvalue
-
-
-def parse_configfile(self):
-    xmldoc = minidom.parse("render_tiles.config.xml")
-    xmlmapnik = xmldoc.getElementsByTagName('render_tiles')[0]
-    
-    xmltilesmanager = xmlmapnik.getElementsByTagName('tilesmanager')[0]
-    self.mbtiles_file = self.__get_xml_subtag_value(xmltilesmanager, 'mbtiles_file', '')
-    self.wmts_url = self.__get_xml_subtag_value(xmltilesmanager, 'wmts_url', '')
-    self.wmts_subdomains = self.__get_xml_subtag_value(xmltilesmanager, 'wmts_subdomains', '')
-    self.mapnik_stylefile = self.__get_xml_subtag_value(xmltilesmanager, 'mapnik_stylefile', '')
-    self.cache_dir = self.__get_xml_subtag_value(xmltilesmanager, 'cache_dir', '')
-    self.tile_size = int(self.__get_xml_subtag_value(xmltilesmanager, 'tile_size', ''))
-    self.tile_format = self.__get_xml_subtag_value(xmltilesmanager, 'tile_format', '')
-    self.tile_scheme = self.__get_xml_subtag_value(xmltilesmanager, 'tile_scheme', '')
-
-    self.hikingmapstyle = self.__get_xml_subtag_value(xmlmapnik, 'hikingmapstyle', \
-                                                      'hikingmap_style.xml')
-    self.output_format = self.__get_xml_subtag_value(xmlmapnik, 'outputformat', 'pdf')
-    self.dpi = int(self.__get_xml_subtag_value(xmlmapnik, 'dpi', '300'))
-    self.scale_factor = float(self.__get_xml_subtag_value(xmlmapnik, 'scalefactor', '1.0'))
-    
-    xmlfontdirlist = xmlmapnik.getElementsByTagName('fontdirs')
-    
-    for xmlfontdir in xmlfontdirlist:
-        fontdir = self.__get_xml_subtag_value(xmlfontdir, 'fontdir', '')
-        if fontdir != '':
-            mapnik.FontEngine.register_fonts(fontdir, True)
-    
-    return True
-'''
     
 def create_tiles_manager(parameters):
     tm_args = { }
@@ -296,8 +370,6 @@ def render(parameters):
 def main():
     parameters = parse_commandline()
     assure_bbox_mode(parameters)
-
-    #parse_configfile(parameters)
     
     render(parameters)
 

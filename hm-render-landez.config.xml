@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<hm_render_landez>
+<hm-render-landez>
     <tilesmanager>
         <mbtiles_file>source.mbtiles</mbtiles_file>
         <!--mapnik_stylefile>mapnik_style.xml</mapnik_stylefile-->
@@ -19,5 +19,5 @@
         <fontdir>/usr/share/fonts/noto-cjk</fontdir>
         <fontdir>/usr/share/fonts/TTF</fontdir>
     </fontdirs>
-</hm_render_landez>
+</hm-render-landez>
 
