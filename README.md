@@ -59,6 +59,53 @@ Options for center mode:
 | `--lat` | Latitude of the center of the page
 | `--scale` | Scale denominator, default 50000
 
+## Configuration file
+
+Because most of the time you will want to use the same parameters, you can optionally override the defaults in a configuration file. hm-render-mapnik will search for a file hm-render-landez.config.xml in the current directory, if not found it will resort to ~/.hm-render-landez.config.xml
+
+```
+<?xml version="1.0" encoding="utf-8"?>
+<hm-render-landez>
+    <tilesmanager>
+        <mbtiles_file>mbsource.mbtiles</mbtiles_file>
+        <mapnik_stylefile>mapnik_style.xml</mapnik_stylefile>
+        <wmts_url>https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</wmts_url>
+        <wmts_subdomains>abc</wmts_subdomains>
+        <cache_dir>tilecache</cache_dir>
+        <tile_size>256</tile_size>
+        <tile_format>image/png</tile_format>
+        <tile_scheme>wmts</tile_scheme>
+    </tilesmanager>
+    <hikingmapstyle>hikingmap_style.xml</hikingmapstyle>
+    <outputformat>png</outputformat>
+    <dpi>300</dpi>
+    <scalefactor>1.0</scalefactor>
+    <fontdirs>
+        <fontdir>/usr/share/fonts/noto</fontdir>
+        <fontdir>/usr/share/fonts/noto-cjk</fontdir>
+        <fontdir>/usr/share/fonts/TTF</fontdir>
+    </fontdirs>
+</hm-render-landez>
+```
+
+Options:
+
+| Tag | Description
+| --- | -----------
+| mbtiles_file | Optional. An MBTiles file providing raster tiles.
+| mapnik_stylefile | Optional. Mapnik stylesheet file.
+| wmts_url | Optional. Remote URL to download tiles.
+| wmts_subdomains | Optional. URL subdomains.
+| cache_dir | Local folder containing cached tiles.
+| tile_size | Tile size.
+| tile_format | Tile image format.
+| tile_scheme | Tile scheme, value can be tms or wmts.
+| hikingmapstyle | Hikingmap stylesheet file, contains the CartoCSS for the tracks and the waypoints, see the repository for an example.
+| outputformat | Output format. Consult the [mapnik documentation](http://mapnik.org/docs/v2.2.0/api/python/mapnik._mapnik-module.html#render_to_file) for possible values.
+| dpi | Amount of detail to render in dots per inch. This value is unrelated to the setting on your printer, a higher value will simply result in smaller icons, thinner roads and unreadable text.
+| scalefactor | The scale factor to compensate for a higher dpi value.
+| fontdirs | Optional. Can contain one or more fontdir subtags with additional font directories to be used by mapnik.
+
 ## Prerequisites
 
 To run this script you should have a working installation of [python 3](https://www.python.org/), [Landez](https://github.com/makinacorpus/landez) and [mapnik](http://mapnik.org/). Make sure you also have [python-mapnik](https://github.com/mapnik/python-mapnik/) installed.
@@ -89,8 +136,4 @@ Please note you should at least specify one tile source. Although it is possible
 1. MBTiles, pass the parameter `--mbtiles` if you want to use this.
 2. Mapnik, pass the parameter `--mapnik-style` if you want to use this, but don't pass `--mbtiles`.
 3. Tile server, pass the parameters `--wmts-url` and `--wmts-subdomains`, but don't pass `--mbtiles` and `--mapnik-style`.
-
-## TODO
-
-Since most of the time the same configuration and tile source will be used, the program should be able to read these parameters from a config file.
 
