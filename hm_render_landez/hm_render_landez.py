@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# hm-render-mapnik -- render maps on paper using tiles with landez and mapnik
+# hm-render-landez -- render maps on paper using tiles with landez and mapnik
 # Copyright (C) 2019  Roel Derickx <roel.derickx AT gmail>
 
 # This program is free software: you can redistribute it and/or modify
@@ -119,12 +119,14 @@ def parse_configfile():
             if scale_factor:
                 config['scale_factor'] = float(scale_factor)
             
-            xmlfontdirlist = xmllandez.getElementsByTagName('fontdirs')
-            
-            for xmlfontdir in xmlfontdirlist:
-                fontdir = get_xml_subtag_value(xmlfontdir, 'fontdir')
-                if fontdir:
-                    mapnik.FontEngine.register_fonts(fontdir, True)
+            xmlfontdirs = xmlmapnik.getElementsByTagName('fontdirs')
+            if xmlfontdirs:
+                xmlfontdirlist = xmlfontdirs[0].getElementsByTagName('fontdir')
+                for xmlfontdir in xmlfontdirlist:
+                    if xmlfontdir and xmlfontdir.childNodes:
+                        fontdir = str(xmlfontdir.firstChild.nodeValue)
+                        if fontdir:
+                            mapnik.FontEngine.register_fonts(fontdir, True)
     
     return config
 
