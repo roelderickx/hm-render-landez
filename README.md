@@ -61,7 +61,7 @@ Options for center mode:
 
 ## Configuration file
 
-Because most of the time you will want to use the same parameters, you can optionally override the defaults in a configuration file. hm-render-mapnik will search for a file hm-render-landez.config.xml in the current directory, if not found it will resort to ~/.hm-render-landez.config.xml
+Because most of the time you will want to use the same parameters, you can optionally override the defaults in a configuration file. hm-render-landez will search for a file hm-render-landez.config.xml in the current directory, if not found it will resort to ~/.hm-render-landez.config.xml
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
